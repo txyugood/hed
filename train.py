@@ -36,8 +36,8 @@ avg_loss = 0.0
 avg_loss_list = []
 reader_cost_averager = TimeAverager()
 batch_cost_averager = TimeAverager()
-model = HED(pretrained='/Users/alex/Downloads/VGG16_pretrained.pdparams')
-learning_rate = paddle.optimizer.lr.StepDecay(learning_rate=1e-3, step_size=10000, gamma=0.1)
+model = HED(backbone_pretrained='/Users/alex/Downloads/VGG16_pretrained.pdparams')
+learning_rate = paddle.optimizer.lr.StepDecay(learning_rate=1e-6, step_size=10000, gamma=0.1)
 optimizer = paddle.optimizer.Momentum(learning_rate=learning_rate, parameters=model.parameters(), weight_decay=2e-4)
 
 batch_start = time.time()

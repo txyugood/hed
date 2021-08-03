@@ -10,8 +10,12 @@ __all__ = ["VGG11", "VGG13", "VGG16", "VGG19"]
 
 
 class ConvBlock(nn.Layer):
-    def __init__(self, input_channels, output_channels, groups, name=None):
+    def __init__(self, input_channels, output_channels, groups, stage, name=None):
         super(ConvBlock, self).__init__()
+
+        if stage == 5:
+            lr = 100.0
+        lr = 1.0
 
         self.groups = groups
         self._conv_1 = Conv2D(
@@ -19,9 +23,13 @@ class ConvBlock(nn.Layer):
             out_channels=output_channels,
             kernel_size=3,
             stride=1,
-            padding=35 if 'conv1' in name else 1,
-            weight_attr=ParamAttr(name=name + "1_weights"),
-            bias_attr=False)
+            padding=35 if stage == 1 else 1,
+            weight_attr=ParamAttr(name=name + "1_weights",
+                                  learning_rate=lr,
+                                  regularizer=paddle.regularizer.L2Decay(2e-4)),
+            bias_attr=ParamAttr(name=name + "1_bias",
+                                learning_rate=lr * 2.0,
+                                regularizer=paddle.regularizer.L2Decay(0)))
         if groups == 2 or groups == 3 or groups == 4:
             self._conv_2 = Conv2D(
                 in_channels=output_channels,
@@ -29,8 +37,12 @@ class ConvBlock(nn.Layer):
                 kernel_size=3,
                 stride=1,
                 padding=1,
-                weight_attr=ParamAttr(name=name + "2_weights"),
-                bias_attr=False)
+                weight_attr=ParamAttr(name=name + "2_weights",
+                                      learning_rate=lr,
+                                      regularizer=paddle.regularizer.L2Decay(2e-4)),
+                bias_attr=ParamAttr(name=name + "2_bias",
+                                learning_rate=lr * 2.0,
+                                regularizer=paddle.regularizer.L2Decay(0)))
         if groups == 3 or groups == 4:
             self._conv_3 = Conv2D(
                 in_channels=output_channels,
@@ -38,8 +50,13 @@ class ConvBlock(nn.Layer):
                 kernel_size=3,
                 stride=1,
                 padding=1,
-                weight_attr=ParamAttr(name=name + "3_weights"),
-                bias_attr=False)
+                weight_attr=ParamAttr(name=name + "3_weights",
+                                      learning_rate=lr,
+                                      regularizer=paddle.regularizer.L2Decay(2e-4)
+                                      ),
+                bias_attr=ParamAttr(name=name + "3_bias",
+                                learning_rate=lr * 2.0,
+                                regularizer=paddle.regularizer.L2Decay(0)))
         if groups == 4:
             self._conv_4 = Conv2D(
                 in_channels=output_channels,
@@ -47,8 +64,13 @@ class ConvBlock(nn.Layer):
                 kernel_size=3,
                 stride=1,
                 padding=1,
-                weight_attr=ParamAttr(name=name + "4_weights"),
-                bias_attr=False)
+                weight_attr=ParamAttr(name=name + "4_weights",
+                                      learning_rate=lr,
+                                      regularizer=paddle.regularizer.L2Decay(2e-4)
+                                      ),
+                bias_attr=ParamAttr(name=name + "4_bias",
+                                learning_rate=lr * 2.0,
+                                regularizer=paddle.regularizer.L2Decay(0)))
 
         self._pool = MaxPool2D(kernel_size=2, stride=2, padding=0)
 
@@ -85,11 +107,11 @@ class VGGNet(nn.Layer):
                 self.vgg_configure.keys(), layers)
         self.groups = self.vgg_configure[self.layers]
 
-        self._conv_block_1 = ConvBlock(3, 64, self.groups[0], name="conv1_")
-        self._conv_block_2 = ConvBlock(64, 128, self.groups[1], name="conv2_")
-        self._conv_block_3 = ConvBlock(128, 256, self.groups[2], name="conv3_")
-        self._conv_block_4 = ConvBlock(256, 512, self.groups[3], name="conv4_")
-        self._conv_block_5 = ConvBlock(512, 512, self.groups[4], name="conv5_")
+        self._conv_block_1 = ConvBlock(3, 64, self.groups[0], 1, name="conv1_")
+        self._conv_block_2 = ConvBlock(64, 128, self.groups[1], 2, name="conv2_")
+        self._conv_block_3 = ConvBlock(128, 256, self.groups[2], 3, name="conv3_")
+        self._conv_block_4 = ConvBlock(256, 512, self.groups[3], 4, name="conv4_")
+        self._conv_block_5 = ConvBlock(512, 512, self.groups[4], 5, name="conv5_")
 
         for idx, block in enumerate([
                 self._conv_block_1, self._conv_block_2, self._conv_block_3,
