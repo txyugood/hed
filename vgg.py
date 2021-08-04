@@ -13,9 +13,9 @@ class ConvBlock(nn.Layer):
     def __init__(self, input_channels, output_channels, groups, stage, name=None):
         super(ConvBlock, self).__init__()
 
+        lr = 1.0
         if stage == 5:
             lr = 100.0
-        lr = 1.0
 
         self.groups = groups
         self._conv_1 = Conv2D(
@@ -76,17 +76,17 @@ class ConvBlock(nn.Layer):
 
     def forward(self, inputs):
         x = self._conv_1(inputs)
-        relu_x = F.relu(x)
+        x = F.relu(x)
         if self.groups == 2 or self.groups == 3 or self.groups == 4:
-            x = self._conv_2(relu_x)
-            relu_x = F.relu(x)
+            x = self._conv_2(x)
+            x = F.relu(x)
         if self.groups == 3 or self.groups == 4:
-            x = self._conv_3(relu_x)
-            relu_x = F.relu(x)
+            x = self._conv_3(x)
+            x = F.relu(x)
         if self.groups == 4:
-            x = self._conv_4(relu_x)
-            relu_x = F.relu(x)
-        pool = self._pool(relu_x)
+            x = self._conv_4(x)
+            x = F.relu(x)
+        pool = self._pool(x)
         return pool, x
 
 

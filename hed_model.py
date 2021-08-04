@@ -40,20 +40,13 @@ def weight_init(module):
             pass
 
 
-
-
-
-
 class HED(nn.Layer):
     def __init__(self, pretrained=None, backbone_pretrained=None):
         super(HED, self).__init__()
         self.backbone = VGG16(pretrained=backbone_pretrained)
         self.head = HEDHead()
-        for p in self.backbone.parameters():
-            p.optimize_attr['learning_rate'] /= 10.0
         if pretrained is not None:
             load_pretrained_model(self, pretrained)
-
 
     def forward(self, inputs):
         y = self.backbone(inputs)
@@ -68,42 +61,52 @@ class HEDHead(nn.Layer):
         self.dsn_conv1 = Conv2D(in_channels=64, out_channels=1, kernel_size=1, stride=1, padding=0,
                                 weight_attr=ParamAttr(name="score_dns1_weights",
                                                       learning_rate=lr,
-                                                      regularizer=paddle.regularizer.L2Decay(2e-4)),
+                                                      regularizer=paddle.regularizer.L2Decay(2e-4),
+                                                      initializer=nn.initializer.Constant(value=0)),
                                 bias_attr=ParamAttr(name="score_dns1_bias",
                                                     learning_rate=lr * 2.0,
-                                                    regularizer=paddle.regularizer.L2Decay(0))
+                                                    regularizer=paddle.regularizer.L2Decay(0),
+                                                      initializer=nn.initializer.Constant(value=0))
                                 )
         self.dsn_conv2 = Conv2D(in_channels=128, out_channels=1, kernel_size=1, stride=1, padding=0,
                                 weight_attr=ParamAttr(name="score_dns2_weights",
                                                       learning_rate=lr,
-                                                      regularizer=paddle.regularizer.L2Decay(2e-4)),
+                                                      regularizer=paddle.regularizer.L2Decay(2e-4),
+                                                      initializer=nn.initializer.Constant(value=0)),
                                 bias_attr=ParamAttr(name="score_dns2_bias",
                                                     learning_rate=lr * 2.0,
-                                                    regularizer=paddle.regularizer.L2Decay(0))
+                                                    regularizer=paddle.regularizer.L2Decay(0),
+                                                    initializer=nn.initializer.Constant(value=0))
                                 )
         self.dsn_conv3 = Conv2D(in_channels=256, out_channels=1, kernel_size=1, stride=1, padding=0,
                                 weight_attr=ParamAttr(name="score_dns3_weights",
                                                       learning_rate=lr,
-                                                      regularizer=paddle.regularizer.L2Decay(2e-4)),
+                                                      regularizer=paddle.regularizer.L2Decay(2e-4),
+                                                      initializer=nn.initializer.Constant(value=0)),
                                 bias_attr=ParamAttr(name="score_dns3_bias",
                                                     learning_rate=lr * 2.0,
-                                                    regularizer=paddle.regularizer.L2Decay(0))
+                                                    regularizer=paddle.regularizer.L2Decay(0),
+                                                    initializer=nn.initializer.Constant(value=0))
                                 )
         self.dsn_conv4 = Conv2D(in_channels=512, out_channels=1, kernel_size=1, stride=1, padding=0,
                                 weight_attr=ParamAttr(name="score_dns4_weights",
                                                       learning_rate=lr,
-                                                      regularizer=paddle.regularizer.L2Decay(2e-4)),
+                                                      regularizer=paddle.regularizer.L2Decay(2e-4),
+                                                      initializer=nn.initializer.Constant(value=0)),
                                 bias_attr=ParamAttr(name="score_dns4_bias",
                                                     learning_rate=lr * 2.0,
-                                                    regularizer=paddle.regularizer.L2Decay(0))
+                                                    regularizer=paddle.regularizer.L2Decay(0),
+                                                    initializer=nn.initializer.Constant(value=0))
                                 )
         self.dsn_conv5 = Conv2D(in_channels=512, out_channels=1, kernel_size=1, stride=1, padding=0,
                                 weight_attr=ParamAttr(name="score_dns5_weights",
                                                       learning_rate=lr,
-                                                      regularizer=paddle.regularizer.L2Decay(2e-4)),
+                                                      regularizer=paddle.regularizer.L2Decay(2e-4),
+                                                      initializer=nn.initializer.Constant(value=0)),
                                 bias_attr=ParamAttr(name="score_dns5_bias",
                                                     learning_rate=lr * 2.0,
-                                                    regularizer=paddle.regularizer.L2Decay(0))
+                                                    regularizer=paddle.regularizer.L2Decay(0),
+                                                    initializer=nn.initializer.Constant(value=0))
                                 )
 
         self.devcon2 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=4, stride=2, padding=int(ceil(2-1)/2))
@@ -118,7 +121,8 @@ class HEDHead(nn.Layer):
                                                     initializer=nn.initializer.Constant(value=0.2)),
                               bias_attr=ParamAttr(name="score_combine_bias",
                                                   learning_rate=0.001 * 2.0,
-                                                  regularizer=paddle.regularizer.L2Decay(0))
+                                                  regularizer=paddle.regularizer.L2Decay(0),
+                                                  initializer=nn.initializer.Constant(value=0))
                               )
 
         weight_init(self)
@@ -129,38 +133,35 @@ class HEDHead(nn.Layer):
         score4 = self.dsn_conv4(inputs[3])
         score5 = self.dsn_conv5(inputs[4])
 
-        # score1 = F.interpolate(score1, ori_shape[2:], mode='bilinear')
-        # score2 = F.interpolate(score2, ori_shape[2:], mode='bilinear')
-        # score3 = F.interpolate(score3, ori_shape[2:], mode='bilinear')
-        # score4 = F.interpolate(score4, ori_shape[2:], mode='bilinear')
-        # score5 = F.interpolate(score5, ori_shape[2:], mode='bilinear')
+        score1 = F.interpolate(score1, ori_shape[2:], mode='bilinear')
+        score2 = F.interpolate(score2, ori_shape[2:], mode='bilinear')
+        score3 = F.interpolate(score3, ori_shape[2:], mode='bilinear')
+        score4 = F.interpolate(score4, ori_shape[2:], mode='bilinear')
+        score5 = F.interpolate(score5, ori_shape[2:], mode='bilinear')
 
-        score2 = self.devcon2(score2)
-        score3 = self.devcon3(score3)
-        score4 = self.devcon4(score4)
-        score5 = self.devcon5(score5)
-
-        offset_h = int((score1.shape[2] - ori_shape[2]) / 2 + 0.5)
-        offset_w = int((score1.shape[3] - ori_shape[3]) / 2 + 0.5)
-        score1 = paddle.crop(score1, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
-        offset_h = int((score2.shape[2] - ori_shape[2]) / 2 + 0.5)
-        offset_w = int((score2.shape[3] - ori_shape[3]) / 2 + 0.5)
-        score2 = paddle.crop(score2, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
-        offset_h = int((score3.shape[2] - ori_shape[2]) / 2 + 0.5)
-        offset_w = int((score3.shape[3] - ori_shape[3]) / 2 + 0.5)
-        score3 = paddle.crop(score3, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
-        offset_h = int((score4.shape[2] - ori_shape[2]) / 2 + 0.5)
-        offset_w = int((score4.shape[3] - ori_shape[3]) / 2 + 0.5)
-        score4 = paddle.crop(score4, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
-        offset_h = int((score5.shape[2] - ori_shape[2]) / 2 + 0.5)
-        offset_w = int((score5.shape[3] - ori_shape[3]) / 2 + 0.5)
-        score5 = paddle.crop(score5, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
+        # score2 = self.devcon2(score2)
+        # score3 = self.devcon3(score3)
+        # score4 = self.devcon4(score4)
+        # score5 = self.devcon5(score5)
+        #
+        # offset_h = int((score1.shape[2] - ori_shape[2]) / 2 + 0.5)
+        # offset_w = int((score1.shape[3] - ori_shape[3]) / 2 + 0.5)
+        # score1 = paddle.crop(score1, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
+        # offset_h = int((score2.shape[2] - ori_shape[2]) / 2 + 0.5)
+        # offset_w = int((score2.shape[3] - ori_shape[3]) / 2 + 0.5)
+        # score2 = paddle.crop(score2, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
+        # offset_h = int((score3.shape[2] - ori_shape[2]) / 2 + 0.5)
+        # offset_w = int((score3.shape[3] - ori_shape[3]) / 2 + 0.5)
+        # score3 = paddle.crop(score3, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
+        # offset_h = int((score4.shape[2] - ori_shape[2]) / 2 + 0.5)
+        # offset_w = int((score4.shape[3] - ori_shape[3]) / 2 + 0.5)
+        # score4 = paddle.crop(score4, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
+        # offset_h = int((score5.shape[2] - ori_shape[2]) / 2 + 0.5)
+        # offset_w = int((score5.shape[3] - ori_shape[3]) / 2 + 0.5)
+        # score5 = paddle.crop(score5, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
 
         scores = [score1, score2, score3, score4, score5]
-        return [
-            self.combine(paddle.concat(scores, axis=1)),
-            score1,score2,score3,score4,score5
-            ]
+        return [self.combine(paddle.concat(scores, axis=1))] + scores
 
 if __name__ == '__main__':
     model = HED()
