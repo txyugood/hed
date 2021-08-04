@@ -1,3 +1,4 @@
+from math import ceil
 
 import numpy as np
 import paddle
@@ -105,10 +106,10 @@ class HEDHead(nn.Layer):
                                                     regularizer=paddle.regularizer.L2Decay(0))
                                 )
 
-        self.devcon2 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=4, stride=2)
-        self.devcon3 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=8, stride=4)
-        self.devcon4 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=16, stride=8)
-        self.devcon5 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=32, stride=16)
+        self.devcon2 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=4, stride=2, padding=int(ceil(2-1)/2))
+        self.devcon3 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=8, stride=4, padding=int(ceil(4-1)/2))
+        self.devcon4 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=16, stride=8, padding=int(ceil(8-1)/2))
+        self.devcon5 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=32, stride=16, padding=int(ceil(16-1)/2))
 
         self.combine = Conv2D(in_channels=5, out_channels=1, kernel_size=1, stride=1, padding=0)
 

@@ -23,7 +23,7 @@ class ConvBlock(nn.Layer):
             out_channels=output_channels,
             kernel_size=3,
             stride=1,
-            padding=35 if stage == 1 else 1,
+            padding=1 if stage == 1 else 1,
             weight_attr=ParamAttr(name=name + "1_weights",
                                   learning_rate=lr,
                                   regularizer=paddle.regularizer.L2Decay(2e-4)),
@@ -76,17 +76,17 @@ class ConvBlock(nn.Layer):
 
     def forward(self, inputs):
         x = self._conv_1(inputs)
-        x = F.relu(x)
+        relu_x = F.relu(x)
         if self.groups == 2 or self.groups == 3 or self.groups == 4:
-            x = self._conv_2(x)
-            x = F.relu(x)
+            x = self._conv_2(relu_x)
+            relu_x = F.relu(x)
         if self.groups == 3 or self.groups == 4:
-            x = self._conv_3(x)
-            x = F.relu(x)
+            x = self._conv_3(relu_x)
+            relu_x = F.relu(x)
         if self.groups == 4:
-            x = self._conv_4(x)
-            x = F.relu(x)
-        pool = self._pool(x)
+            x = self._conv_4(relu_x)
+            relu_x = F.relu(x)
+        pool = self._pool(relu_x)
         return pool, x
 
 
