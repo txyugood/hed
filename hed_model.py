@@ -4,6 +4,8 @@ import paddle
 import paddle.nn as nn
 from paddle import ParamAttr
 from paddle.nn import Conv2D, Conv2DTranspose
+import paddle.nn.functional as F
+
 from utils import load_pretrained_model
 from vgg import VGG16
 
@@ -118,16 +120,22 @@ class HEDHead(nn.Layer):
         score4 = self.dsn_conv4(inputs[3])
         score5 = self.dsn_conv5(inputs[4])
 
-        score2 = self.devcon2(score2)
-        score3 = self.devcon3(score3)
-        score4 = self.devcon4(score4)
-        score5 = self.devcon5(score5)
+        score1 = F.interpolate(score1, ori_shape[2:], mode='bilinear')
+        score2 = F.interpolate(score2, ori_shape[2:], mode='bilinear')
+        score3 = F.interpolate(score3, ori_shape[2:], mode='bilinear')
+        score4 = F.interpolate(score4, ori_shape[2:], mode='bilinear')
+        score5 = F.interpolate(score5, ori_shape[2:], mode='bilinear')
 
-        score1 = paddle.crop(score1, ori_shape[0:1] + [1] + ori_shape[2:])
-        score2 = paddle.crop(score2, ori_shape[0:1] + [1] + ori_shape[2:])
-        score3 = paddle.crop(score3, ori_shape[0:1] + [1] + ori_shape[2:])
-        score4 = paddle.crop(score4, ori_shape[0:1] + [1] + ori_shape[2:])
-        score5 = paddle.crop(score5, ori_shape[0:1] + [1] + ori_shape[2:])
+        # score2 = self.devcon2(score2)
+        # score3 = self.devcon3(score3)
+        # score4 = self.devcon4(score4)
+        # score5 = self.devcon5(score5)
+
+        # score1 = paddle.crop(score1, ori_shape[0:1] + [1] + ori_shape[2:])
+        # score2 = paddle.crop(score2, ori_shape[0:1] + [1] + ori_shape[2:])
+        # score3 = paddle.crop(score3, ori_shape[0:1] + [1] + ori_shape[2:])
+        # score4 = paddle.crop(score4, ori_shape[0:1] + [1] + ori_shape[2:])
+        # score5 = paddle.crop(score5, ori_shape[0:1] + [1] + ori_shape[2:])
 
         scores = [score1, score2, score3, score4, score5]
         return [

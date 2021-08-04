@@ -20,7 +20,7 @@ model.eval()
 test_path = "/Users/alex/baidu/HED-BSDS/test/"
 image_list = glob.glob(test_path + "*.jpg")
 transforms = Compose([Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
-for image_im in image_list:
+for i, image_im in enumerate(image_list):
     img = cv2.imread(image_im)
     img, _ = transforms(img)
     img = paddle.to_tensor(img[np.newaxis, :, :, :].astype('float32'))
@@ -32,6 +32,7 @@ for image_im in image_list:
     save_image = save_image.numpy() * 255.0
     save_image = save_image.astype('uint8')
     cv2.imwrite(os.path.join(target_path, image_im.split('/')[-1].split('.')[0] + ".png"),save_image)
+    print("{}/{}".format(i+1, len(image_list)))
     pass
 
 pass

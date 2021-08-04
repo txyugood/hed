@@ -23,7 +23,7 @@ class ConvBlock(nn.Layer):
             out_channels=output_channels,
             kernel_size=3,
             stride=1,
-            padding=35 if stage == 1 else 1,
+            padding=1,
             weight_attr=ParamAttr(name=name + "1_weights",
                                   learning_rate=lr,
                                   regularizer=paddle.regularizer.L2Decay(2e-4)),
