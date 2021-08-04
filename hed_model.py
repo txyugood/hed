@@ -109,10 +109,10 @@ class HEDHead(nn.Layer):
                                                     initializer=nn.initializer.Constant(value=0))
                                 )
 
-        self.devcon2 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=4, stride=2, padding=int(ceil(2-1)/2))
-        self.devcon3 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=8, stride=4, padding=int(ceil(4-1)/2))
-        self.devcon4 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=16, stride=8, padding=int(ceil(8-1)/2))
-        self.devcon5 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=32, stride=16, padding=int(ceil(16-1)/2))
+        self.devcon2 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=4, stride=2)
+        self.devcon3 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=8, stride=4)
+        self.devcon4 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=16, stride=8)
+        self.devcon5 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=32, stride=16)
 
         self.combine = Conv2D(in_channels=5, out_channels=1, kernel_size=1, stride=1, padding=0,
                               weight_attr=ParamAttr(name="score_combine_weights",
@@ -133,32 +133,27 @@ class HEDHead(nn.Layer):
         score4 = self.dsn_conv4(inputs[3])
         score5 = self.dsn_conv5(inputs[4])
 
-        score1 = F.interpolate(score1, ori_shape[2:], mode='bilinear')
-        score2 = F.interpolate(score2, ori_shape[2:], mode='bilinear')
-        score3 = F.interpolate(score3, ori_shape[2:], mode='bilinear')
-        score4 = F.interpolate(score4, ori_shape[2:], mode='bilinear')
-        score5 = F.interpolate(score5, ori_shape[2:], mode='bilinear')
 
-        # score2 = self.devcon2(score2)
-        # score3 = self.devcon3(score3)
-        # score4 = self.devcon4(score4)
-        # score5 = self.devcon5(score5)
-        #
-        # offset_h = int((score1.shape[2] - ori_shape[2]) / 2 + 0.5)
-        # offset_w = int((score1.shape[3] - ori_shape[3]) / 2 + 0.5)
-        # score1 = paddle.crop(score1, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
-        # offset_h = int((score2.shape[2] - ori_shape[2]) / 2 + 0.5)
-        # offset_w = int((score2.shape[3] - ori_shape[3]) / 2 + 0.5)
-        # score2 = paddle.crop(score2, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
-        # offset_h = int((score3.shape[2] - ori_shape[2]) / 2 + 0.5)
-        # offset_w = int((score3.shape[3] - ori_shape[3]) / 2 + 0.5)
-        # score3 = paddle.crop(score3, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
-        # offset_h = int((score4.shape[2] - ori_shape[2]) / 2 + 0.5)
-        # offset_w = int((score4.shape[3] - ori_shape[3]) / 2 + 0.5)
-        # score4 = paddle.crop(score4, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
-        # offset_h = int((score5.shape[2] - ori_shape[2]) / 2 + 0.5)
-        # offset_w = int((score5.shape[3] - ori_shape[3]) / 2 + 0.5)
-        # score5 = paddle.crop(score5, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
+        score2 = self.devcon2(score2)
+        score3 = self.devcon3(score3)
+        score4 = self.devcon4(score4)
+        score5 = self.devcon5(score5)
+
+        offset_h = int((score1.shape[2] - ori_shape[2]) / 2 + 0.5)
+        offset_w = int((score1.shape[3] - ori_shape[3]) / 2 + 0.5)
+        score1 = paddle.crop(score1, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
+        offset_h = int((score2.shape[2] - ori_shape[2]) / 2 + 0.5)
+        offset_w = int((score2.shape[3] - ori_shape[3]) / 2 + 0.5)
+        score2 = paddle.crop(score2, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
+        offset_h = int((score3.shape[2] - ori_shape[2]) / 2 + 0.5)
+        offset_w = int((score3.shape[3] - ori_shape[3]) / 2 + 0.5)
+        score3 = paddle.crop(score3, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
+        offset_h = int((score4.shape[2] - ori_shape[2]) / 2 + 0.5)
+        offset_w = int((score4.shape[3] - ori_shape[3]) / 2 + 0.5)
+        score4 = paddle.crop(score4, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
+        offset_h = int((score5.shape[2] - ori_shape[2]) / 2 + 0.5)
+        offset_w = int((score5.shape[3] - ori_shape[3]) / 2 + 0.5)
+        score5 = paddle.crop(score5, ori_shape[0:1] + [1] + ori_shape[2:], [0, 0, offset_h, offset_w])
 
         scores = [score1, score2, score3, score4, score5]
         return [self.combine(paddle.concat(scores, axis=1))] + scores
