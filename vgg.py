@@ -24,8 +24,12 @@ class ConvBlock(nn.Layer):
             kernel_size=3,
             stride=1,
             padding=35 if stage == 1 else 1,
-            weight_attr=ParamAttr(name=name + "1_weights"),
-            bias_attr=ParamAttr(name=name + "1_bias"))
+            weight_attr=ParamAttr(name=name + "1_weights",
+                                  learning_rate=lr,
+                                  regularizer=paddle.regularizer.L2Decay(2e-4)),
+            bias_attr=ParamAttr(name=name + "1_bias",
+                                learning_rate=lr * 2.0,
+                                regularizer=paddle.regularizer.L2Decay(0)))
         if groups == 2 or groups == 3 or groups == 4:
             self._conv_2 = Conv2D(
                 in_channels=output_channels,
@@ -33,8 +37,12 @@ class ConvBlock(nn.Layer):
                 kernel_size=3,
                 stride=1,
                 padding=1,
-                weight_attr=ParamAttr(name=name + "2_weights"),
-                bias_attr=ParamAttr(name=name + "2_bias"))
+                weight_attr=ParamAttr(name=name + "2_weights",
+                                      learning_rate=lr,
+                                      regularizer=paddle.regularizer.L2Decay(2e-4)),
+                bias_attr=ParamAttr(name=name + "2_bias",
+                                learning_rate=lr * 2.0,
+                                regularizer=paddle.regularizer.L2Decay(0)))
         if groups == 3 or groups == 4:
             self._conv_3 = Conv2D(
                 in_channels=output_channels,
@@ -42,9 +50,13 @@ class ConvBlock(nn.Layer):
                 kernel_size=3,
                 stride=1,
                 padding=1,
-                weight_attr=ParamAttr(name=name + "3_weights"
+                weight_attr=ParamAttr(name=name + "3_weights",
+                                      learning_rate=lr,
+                                      regularizer=paddle.regularizer.L2Decay(2e-4)
                                       ),
-                bias_attr=ParamAttr(name=name + "3_bias"))
+                bias_attr=ParamAttr(name=name + "3_bias",
+                                learning_rate=lr * 2.0,
+                                regularizer=paddle.regularizer.L2Decay(0)))
         if groups == 4:
             self._conv_4 = Conv2D(
                 in_channels=output_channels,
@@ -52,11 +64,15 @@ class ConvBlock(nn.Layer):
                 kernel_size=3,
                 stride=1,
                 padding=1,
-                weight_attr=ParamAttr(name=name + "4_weights"
+                weight_attr=ParamAttr(name=name + "4_weights",
+                                      learning_rate=lr,
+                                      regularizer=paddle.regularizer.L2Decay(2e-4)
                                       ),
-                bias_attr=ParamAttr(name=name + "4_bias"))
+                bias_attr=ParamAttr(name=name + "4_bias",
+                                learning_rate=lr * 2.0,
+                                regularizer=paddle.regularizer.L2Decay(0)))
 
-        self._pool = MaxPool2D(kernel_size=2, stride=2, padding=0, ceil_mode=True)
+        self._pool = MaxPool2D(kernel_size=2, stride=2, padding=0)
 
     def forward(self, inputs):
         x = self._conv_1(inputs)

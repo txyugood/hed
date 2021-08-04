@@ -65,24 +65,44 @@ class HEDHead(nn.Layer):
         super(HEDHead, self).__init__()
         lr = 0.01
         self.dsn_conv1 = Conv2D(in_channels=64, out_channels=1, kernel_size=1, stride=1, padding=0,
-                                weight_attr=ParamAttr(name="score_dns1_weights"),
-                                bias_attr=ParamAttr(name="score_dns1_bias")
+                                weight_attr=ParamAttr(name="score_dns1_weights",
+                                                      learning_rate=lr,
+                                                      regularizer=paddle.regularizer.L2Decay(2e-4)),
+                                bias_attr=ParamAttr(name="score_dns1_bias",
+                                                    learning_rate=lr * 2.0,
+                                                    regularizer=paddle.regularizer.L2Decay(0))
                                 )
         self.dsn_conv2 = Conv2D(in_channels=128, out_channels=1, kernel_size=1, stride=1, padding=0,
-                                weight_attr=ParamAttr(name="score_dns2_weights"),
-                                bias_attr=ParamAttr(name="score_dns2_bias")
+                                weight_attr=ParamAttr(name="score_dns2_weights",
+                                                      learning_rate=lr,
+                                                      regularizer=paddle.regularizer.L2Decay(2e-4)),
+                                bias_attr=ParamAttr(name="score_dns2_bias",
+                                                    learning_rate=lr * 2.0,
+                                                    regularizer=paddle.regularizer.L2Decay(0))
                                 )
         self.dsn_conv3 = Conv2D(in_channels=256, out_channels=1, kernel_size=1, stride=1, padding=0,
-                                weight_attr=ParamAttr(name="score_dns3_weights"),
-                                bias_attr=ParamAttr(name="score_dns3_bias")
+                                weight_attr=ParamAttr(name="score_dns3_weights",
+                                                      learning_rate=lr,
+                                                      regularizer=paddle.regularizer.L2Decay(2e-4)),
+                                bias_attr=ParamAttr(name="score_dns3_bias",
+                                                    learning_rate=lr * 2.0,
+                                                    regularizer=paddle.regularizer.L2Decay(0))
                                 )
         self.dsn_conv4 = Conv2D(in_channels=512, out_channels=1, kernel_size=1, stride=1, padding=0,
-                                weight_attr=ParamAttr(name="score_dns4_weights"),
-                                bias_attr=ParamAttr(name="score_dns4_bias")
+                                weight_attr=ParamAttr(name="score_dns4_weights",
+                                                      learning_rate=lr,
+                                                      regularizer=paddle.regularizer.L2Decay(2e-4)),
+                                bias_attr=ParamAttr(name="score_dns4_bias",
+                                                    learning_rate=lr * 2.0,
+                                                    regularizer=paddle.regularizer.L2Decay(0))
                                 )
         self.dsn_conv5 = Conv2D(in_channels=512, out_channels=1, kernel_size=1, stride=1, padding=0,
-                                weight_attr=ParamAttr(name="score_dns5_weights"),
-                                bias_attr=ParamAttr(name="score_dns5_bias")
+                                weight_attr=ParamAttr(name="score_dns5_weights",
+                                                      learning_rate=lr,
+                                                      regularizer=paddle.regularizer.L2Decay(2e-4)),
+                                bias_attr=ParamAttr(name="score_dns5_bias",
+                                                    learning_rate=lr * 2.0,
+                                                    regularizer=paddle.regularizer.L2Decay(0))
                                 )
 
         self.devcon2 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=4, stride=2)
