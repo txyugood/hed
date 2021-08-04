@@ -111,7 +111,15 @@ class HEDHead(nn.Layer):
         self.devcon4 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=16, stride=8, padding=int(ceil(8-1)/2))
         self.devcon5 = Conv2DTranspose(in_channels=1, out_channels=1, kernel_size=32, stride=16, padding=int(ceil(16-1)/2))
 
-        self.combine = Conv2D(in_channels=5, out_channels=1, kernel_size=1, stride=1, padding=0)
+        self.combine = Conv2D(in_channels=5, out_channels=1, kernel_size=1, stride=1, padding=0,
+                              weight_attr=ParamAttr(name="score_combine_weights",
+                                                    learning_rate=0.001,
+                                                    regularizer=paddle.regularizer.L2Decay(2e-4),
+                                                    initializer=nn.initializer.Constant(value=0.2)),
+                              bias_attr=ParamAttr(name="score_combine_bias",
+                                                  learning_rate=0.001 * 2.0,
+                                                  regularizer=paddle.regularizer.L2Decay(0))
+                              )
 
         weight_init(self)
     def forward(self, inputs, ori_shape):
