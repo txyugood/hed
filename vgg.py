@@ -23,7 +23,7 @@ class ConvBlock(nn.Layer):
             out_channels=output_channels,
             kernel_size=3,
             stride=1,
-            padding=1,
+            padding=35 if stage == 1 else 1,
             weight_attr=ParamAttr(name=name + "1_weights",
                                   learning_rate=lr,
                                   regularizer=paddle.regularizer.L2Decay(2e-4)),
@@ -157,3 +157,13 @@ def VGG19(**args):
     model = VGGNet(layers=19, **args)
     return model
 
+import numpy as np
+
+def export_weight_names(net):
+    print(net.state_dict().keys())
+    with open('paddle_vgg.txt', 'w') as f:
+        for key in net.state_dict().keys():
+            f.write(key + '\n')
+if __name__ == '__main__':
+    model = VGG16()
+    export_weight_names(model)
