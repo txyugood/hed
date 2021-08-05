@@ -151,13 +151,14 @@ class Dataset(paddle.io.Dataset):
             return im.astype('float32'), label.astype('float32')
         else:
             im, label = self.transforms(im=image_path, label=label_path)
-            if True in (label > 1):
-                label = label / 255.
             if len(label.shape) == 2:
                 label = label[np.newaxis, :, :]
             else:
                 label = label[:, :, 0]
                 label = label[np.newaxis, :, :]
+            thres = 125
+            label[label < thres] = 0
+            label[label != 0] = 1
             return im.astype('float32'), label.astype('float32')
 
 

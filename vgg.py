@@ -79,15 +79,18 @@ class ConvBlock(nn.Layer):
         x = F.relu(x)
         if self.groups == 2 or self.groups == 3 or self.groups == 4:
             x = self._conv_2(x)
+            conv = x
             x = F.relu(x)
         if self.groups == 3 or self.groups == 4:
             x = self._conv_3(x)
+            conv = x 
             x = F.relu(x)
         if self.groups == 4:
             x = self._conv_4(x)
+            conv = x
             x = F.relu(x)
         pool = self._pool(x)
-        return pool, x
+        return pool, conv
 
 
 class VGGNet(nn.Layer):

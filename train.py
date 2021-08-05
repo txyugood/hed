@@ -4,21 +4,23 @@ import time
 import paddle
 import paddle.nn.functional as F
 from dataset import Dataset
+from binary_cross_entropy_loss import BCELoss
 from hed_model import HED
-from transforms import Normalize
+from transforms import Normalize, Resize
 from timer import TimeAverager, calculate_eta
 import logger
 
 save_dir = 'output'
-iters = 100000
-save_interval = 1000
-batch_size = 1
+iters = 40000
+save_interval = 10000
+batch_size = 10
 transforms = [
-    Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    Resize(target_size=(400, 400)),
+    Normalize(mean=(122.67891434,116.66876762,104.00699))
 ]
 dataset = Dataset(transforms=transforms,
-                  dataset_root="/Users/alex/baidu/HED-BSDS",
-                  train_path="/Users/alex/baidu/HED-BSDS/train_pair.lst")
+                  dataset_root="/home/aistudio/HED-BSDS",
+                  train_path="/home/aistudio/HED-BSDS/train_pair.lst")
 
 batch_sampler = paddle.io.DistributedBatchSampler(
     dataset, batch_size=batch_size, shuffle=True, drop_last=True)
@@ -31,17 +33,19 @@ loader = paddle.io.DataLoader(
 )
 iter = 0
 iters_per_epoch = len(batch_sampler)
-log_iters = 1
+log_iters = 10
 avg_loss = 0.0
 avg_loss_list = []
 reader_cost_averager = TimeAverager()
 batch_cost_averager = TimeAverager()
-model = HED(backbone_pretrained='/Users/alex/Downloads/VGG16_pretrained.pdparams')
+bce_loss = BCELoss()
+model = HED(backbone_pretrained='/home/aistudio/vgg16.pdparams')
 learning_rate = paddle.optimizer.lr.StepDecay(learning_rate=1e-6, step_size=10000, gamma=0.1)
 optimizer = paddle.optimizer.Momentum(learning_rate=learning_rate, parameters=model.parameters(), weight_decay=2e-4)
 
 batch_start = time.time()
 while iter < iters:
+
     for data in loader:
         iter += 1
         if iter > iters:
@@ -51,7 +55,7 @@ while iter < iters:
         logits_list = model(images)
         loss_list = []
         for logits in logits_list:
-            loss = F.binary_cross_entropy_with_logits(logits, labels)
+            loss = bce_loss(logits, labels)
             loss_list.append(loss)
         loss = sum(loss_list)
         loss.backward()
@@ -85,7 +89,7 @@ while iter < iters:
             avg_train_reader_cost = reader_cost_averager.get_average()
             eta = calculate_eta(remain_iters, avg_train_batch_cost)
             logger.info(
-                "[TRAIN] epoch: {}, iter: {}/{}, loss: {:.4f}, lr: {:.6f}, batch_cost: {:.4f}, reader_cost: {:.5f}, ips: {:.4f} samples/sec | ETA {}"
+                "[TRAIN] epoch: {}, iter: {}/{}, loss: {:.4f}, lr: {:.10f}, batch_cost: {:.4f}, reader_cost: {:.5f}, ips: {:.4f} samples/sec | ETA {}"
                     .format((iter - 1) // iters_per_epoch + 1, iter, iters,
                             avg_loss, lr, avg_train_batch_cost,
                             avg_train_reader_cost,

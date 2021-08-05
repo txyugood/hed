@@ -19,9 +19,9 @@ from scipy.ndimage.morphology import distance_transform_edt
 
 
 def normalize(im, mean, std):
-    im = im.astype(np.float32, copy=False) / 255.0
+    # im = im.astype(np.float32, copy=False) / 255.0
     im -= mean
-    im /= std
+
     return im
 
 
