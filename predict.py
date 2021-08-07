@@ -36,7 +36,9 @@ load_pretrained_model(model, "/Users/alex/Downloads/model_hed.pdparams")
 model.eval()
 test_path = "/Users/alex/baidu/HED-BSDS/test/"
 if tiny:
-    image_list = [os.path.join(test_path, fn) for fn in ['2018.jpg', '3063.jpg', '5096.jpg', '6046.jpg']]
+    image_list = [os.path.join(test_path, fn) for fn in ['2018.jpg', '3063.jpg', '5096.jpg', '14092.jpg', '35049.jpg',
+                                                         '6046.jpg', '41085.jpg', '28083.jpg', '101084.jpg',
+                                                         '246009.jpg']]
 else:
     image_list = glob.glob(test_path + "*.jpg")
 nimgs = len(image_list)
