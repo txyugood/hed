@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import random
 
 import paddle
 import numpy as np
@@ -70,7 +71,7 @@ class Dataset(paddle.io.Dataset):
                  ignore_index=255,
                  edge=False):
         self.dataset_root = dataset_root
-        self.transforms = Compose(transforms)
+        self.transforms = Compose(transforms, to_rgb=False)
         self.file_list = list()
         mode = mode.lower()
         self.mode = mode
@@ -134,6 +135,7 @@ class Dataset(paddle.io.Dataset):
                     image_path = os.path.join(self.dataset_root, items[0])
                     label_path = os.path.join(self.dataset_root, items[1])
                 self.file_list.append([image_path, label_path])
+        random.shuffle(self.file_list)
 
     def __getitem__(self, idx):
         image_path, label_path = self.file_list[idx]
@@ -156,7 +158,7 @@ class Dataset(paddle.io.Dataset):
             else:
                 label = label[:, :, 0]
                 label = label[np.newaxis, :, :]
-            thres = 125
+            thres = 60
             label[label < thres] = 0
             label[label != 0] = 1
             return im.astype('float32'), label.astype('float32')

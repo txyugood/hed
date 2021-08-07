@@ -6,17 +6,27 @@ import paddle.nn.functional as F
 from dataset import Dataset
 from binary_cross_entropy_loss import BCELoss
 from hed_model import HED
-from transforms import Normalize, Resize
+from transforms import Normalize, Resize, RandomDistort, RandomHorizontalFlip, RandomVerticalFlip, ResizeStepScaling,RandomPaddingCrop
 from timer import TimeAverager, calculate_eta
 import logger
 
 save_dir = 'output'
-iters = 40000
-save_interval = 10000
+iters = 100000
+save_interval = 1000
 batch_size = 10
+iter = 0
+log_iters = 100
 transforms = [
     Resize(target_size=(400, 400)),
-    Normalize(mean=(122.67891434,116.66876762,104.00699))
+    RandomHorizontalFlip(),
+    RandomVerticalFlip(),
+    RandomDistort(
+      brightness_range=0.4,
+      contrast_range=0.4,
+      saturation_range=0.4,
+    ),
+    # Normalize(mean=(104.00699, 116.66876762, 122.67891434), std=(57.375 ,57.12, 58.395))
+    Normalize(mean=(104.00699, 116.66876762, 122.67891434), std=(1, 1, 1))
 ]
 dataset = Dataset(transforms=transforms,
                   dataset_root="/home/aistudio/HED-BSDS",
@@ -31,20 +41,35 @@ loader = paddle.io.DataLoader(
     num_workers=0,
     return_list=True,
 )
-iter = 0
+
 iters_per_epoch = len(batch_sampler)
-log_iters = 10
 avg_loss = 0.0
 avg_loss_list = []
 reader_cost_averager = TimeAverager()
 batch_cost_averager = TimeAverager()
-bce_loss = BCELoss()
+bce_loss = BCELoss(weight="dynamic")
 model = HED(backbone_pretrained='/home/aistudio/vgg16.pdparams')
-learning_rate = paddle.optimizer.lr.StepDecay(learning_rate=1e-6, step_size=10000, gamma=0.1)
-optimizer = paddle.optimizer.Momentum(learning_rate=learning_rate, parameters=model.parameters(), weight_decay=2e-4)
+
+learning_rate = paddle.optimizer.lr.PolynomialDecay(learning_rate=1e-4, decay_steps=iters, power=0.9,end_lr=1e-8)
+lr = paddle.optimizer.lr.LinearWarmup(learning_rate=learning_rate, warmup_steps=10000, start_lr=0, end_lr=1e-4)
+optimizer = paddle.optimizer.Momentum(learning_rate=lr, parameters=model.parameters(), weight_decay=2e-4)
 
 batch_start = time.time()
 while iter < iters:
+
+    dataset = Dataset(transforms=transforms,
+                    dataset_root="/home/aistudio/HED-BSDS",
+                    train_path="/home/aistudio/HED-BSDS/train_pair.lst")
+
+    batch_sampler = paddle.io.DistributedBatchSampler(
+        dataset, batch_size=batch_size, shuffle=True, drop_last=True)
+
+    loader = paddle.io.DataLoader(
+        dataset,
+        batch_sampler=batch_sampler,
+        num_workers=0,
+        return_list=True,
+    )
 
     for data in loader:
         iter += 1
