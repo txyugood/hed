@@ -50,7 +50,7 @@ def parse_args():
         dest='dataset',
         help='The directory for train dataset',
         type=str,
-        default='vgg.pdparams')
+        default='/Users/alex/baidu/HED-BSDS')
     parser.add_argument(
         '--save_dir',
         dest='save_dir',
