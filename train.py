@@ -44,7 +44,7 @@ def parse_args():
         dest='pretrained_model',
         help='The directory for pretrained model',
         type=str,
-        default='vgg.pdparams')
+        default='vgg16.pdparams')
     parser.add_argument(
         '--dataset',
         dest='dataset',
@@ -68,7 +68,7 @@ def parse_args():
 
 
 def main(args):
-    save_dir = args.output
+    save_dir = args.save_dir
     iters = args.iters
     save_interval = args.save_interval
     batch_size = args.batch_size
@@ -128,8 +128,8 @@ def main(args):
 
         dataset = Dataset(
             transforms=transforms,
-            dataset_root="/home/aistudio/HED-BSDS",
-            train_path="/home/aistudio/HED-BSDS/train_pair.lst")
+            dataset_root=dataset_root,
+            train_path=os.path.join(dataset_root, "train_pair.lst"))
 
         batch_sampler = paddle.io.DistributedBatchSampler(
             dataset, batch_size=batch_size, shuffle=True, drop_last=True)
