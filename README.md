@@ -46,7 +46,7 @@ python train.py --iters 100000 --batch_size 10 --learning_rate 0.0001 --save_int
 # 4.测试
 
 ```
-python predict.py --pretrained_model hed_model.pdparams --dataset HED-BSDS/test --save_dir output/result
+python predict.py --pretrained_model model_hed.pdparams --dataset HED-BSDS/test/ --save_dir output/result
 ```
 上述命令中pretrained_model为训练结果模型，dataset为测试图片路径。
 
