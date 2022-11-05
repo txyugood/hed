@@ -167,7 +167,7 @@ def main(args):
             if isinstance(lr_sche, paddle.optimizer.lr.LRScheduler):
                 lr_sche.step()
 
-            avg_loss += loss.numpy()[0]
+            avg_loss += float(loss)
             if not avg_loss_list:
                 avg_loss_list = [l.numpy() for l in loss_list]
             else:
